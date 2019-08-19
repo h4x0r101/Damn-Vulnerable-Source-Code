@@ -1,0 +1,63 @@
+1. Hardcoded secrets like username and password
+    There will be an admin login in the application , instead of fetching this username from the DB , username validation will happen in one of the pages like sec_adm.html.
+     this is done and dusted !
+
+2. Internal IP disclosure
+	this i am planning to put some links which mentions internal IP , random cloud IP etc. in the source.
+3. PII Data being transffered via URL
+this can be done via a form submission , where user will enter details like credit card and this will go via GET
+4. Insecure usgage of Random function
+I am planning to generate a value as a voucher code with a random function logic of my own so its not random at the end of the day.
+5. Reflected Cross Site Scripting
+will take an input from the PII page and reflect it then and there and will store in db and show it somewhere elese too
+6. Stored Cross Site Scripting
+7. Authorization bypass issues like forced browsing
+will use the hidden sec_admin.html
+8. Isecure direct onject reference
+this i dont know how to do
+9. Authentication bypass using SQL Injection
+this can be done easily
+10. Sensitive Information disclosed via comments
+this can be added via comments
+11. Version Disclosures via Code and comments
+this can be done easily
+12. Technical information revealed via stacktrace / error message
+may be an unhandled exception
+
+		SQL Auth Bypass
+               |
+Home Page > SignIn & Signup -> Create User
+               |
+			User Home > generate voucher > insecure random
+				|
+			Enter Credit Card Data > Save (Issue 3)
+				|
+	        Enter Personal Details > For store and reflected XSS
+
+Hidden admin page > for Hardcoded username and password & SQL Connection string config file
+       |
+Forced browsing
+		|
+secret admin > senstive information in comments
+		|
+		Version disclosure > multiple pages
+		|
+		unhandled exception should spilt out the Connection string and all to the app page.
+
+
+
+    @app.route('/')
+    def home():
+    	if not session.get('logged_in'):
+    		return render_template('index.html')
+    	else:
+    		return render_template('cust_error.html')
+
+    @app.route('/login', methods=['POST'])
+    def do_login():
+    	if request.form['password'] =="123123asdf":
+    		session['logged_in'] = True
+    		return render_template('user_home.html')
+    	else :
+    		#flash('The username or password provided is wrong')
+    		return home()
