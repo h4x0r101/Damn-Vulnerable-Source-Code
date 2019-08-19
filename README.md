@@ -57,3 +57,5 @@ app.py is the python file where the application logics are written and most of t
 11. Version Disclosures via Code and comments
 12. Technical information revealed via stacktrace / error message
 
+and more to come ...
+
