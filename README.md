@@ -59,3 +59,7 @@ app.py is the python file where the application logics are written and most of t
 
 and more to come ...
 
+Update : 04-05-2020
+--------------------
+
+At present this is a dead project due to work and other important stuff going on in life, Once I sort those out I will start working on this one. Till then stay safe and beat the crap out of COVID - 19.
