@@ -1,0 +1,83 @@
+@model VulnApp.Models.ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@* VulnApp v1.0.2 | cust_error.html — Error Handler *@
+@* VULNERABILITY #12: This view intentionally dumps all technical error details *@
+@* Stack traces, SQL queries, internal paths, and .NET runtime info exposed *@
+
+@section NavLinks {
+  <a href="/">Home</a>
+}
+
+<div class="page-container" style="align-items:flex-start; padding-top:3rem;">
+  <div class="card card-wide" style="max-width:820px;">
+
+    <div style="margin-bottom:1.5rem;">
+      <div class="error-code">ERR</div>
+      <h2 style="margin-top:0.5rem;">Application Error</h2>
+      <p class="subtitle">// something went wrong — details below</p>
+    </div>
+
+    @* VULNERABILITY #12: Raw error message (may include SQL, paths, object names) *@
+    @if (!string.IsNullOrEmpty(Model?.ErrorMessage))
+    {
+      <div style="margin-bottom:1.5rem;">
+        <p class="section-title">// error message</p>
+        <div class="alert alert-error" style="font-family:'Share Tech Mono',monospace; font-size:0.82rem;">
+          @Model.ErrorMessage
+        </div>
+      </div>
+    }
+
+    @* VULNERABILITY #12: Raw SQL query that caused the error — reveals schema *@
+    @if (!string.IsNullOrEmpty(Model?.Query))
+    {
+      <div style="margin-bottom:1.5rem;">
+        <p class="section-title">// query / request that caused the error</p>
+        <div class="query-box">@Model.Query</div>
+      </div>
+    }
+
+    @* VULNERABILITY #12: Full .NET stack trace exposed *@
+    @* Reveals: file paths, line numbers, .NET version, assembly names, method signatures *@
+    @if (!string.IsNullOrEmpty(Model?.StackTrace))
+    {
+      <div style="margin-bottom:1.5rem;">
+        <p class="section-title">// full stack trace</p>
+        <div class="traceback-box">@Model.StackTrace</div>
+      </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model?.RequestPath))
+    {
+      <div style="margin-bottom:1.5rem;">
+        <p class="section-title">// request path</p>
+        <div class="query-box">@Model.RequestPath</div>
+      </div>
+    }
+
+    @* VULNERABILITY #2 + #11: Internal infrastructure info in error page *@
+    <hr class="divider" />
+    <div style="font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-muted);">
+      @* Server: 192.168.1.105 | ASP.NET Core 8.0.0 | C# | SQLite 3.x *@
+      <span>VulnApp/1.0.2</span> ·
+      <span>ASP.NET Core/8.0.0</span> ·
+      <span>C#</span> ·
+      <span>Host: 192.168.1.105</span>
+    </div>
+
+    <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+      <a href="/" class="btn btn-primary btn-sm">← Go Home</a>
+      <a href="javascript:history.back()" class="btn btn-sm"
+         style="background:var(--bg-input); color:var(--text-muted); border:1px solid var(--border);">
+        Go Back
+      </a>
+    </div>
+
+  </div>
+</div>
+
+@* VULNERABILITY #2: Error log path discloses internal IP and file structure *@
+@* VulnApp v1.0.2 | Error logged to /var/log/vulnapp/errors.log on 192.168.1.105 *@

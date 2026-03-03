@@ -1,0 +1,112 @@
+@model VulnApp.Models.AdminPanelViewModel
+@{
+    ViewData["Title"] = "Admin Panel";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@* VulnApp v1.0.2 | Admin Panel *@
+@* VULNERABILITY #2: Infrastructure details in view comment *@
+@* Internal: DB Host=@Model.DbHost | App Server=@Model.InternalIp *@
+
+@section NavLinks {
+  <span style="color:var(--accent2); font-size:0.8rem;">ADMIN MODE</span>
+  <a href="/logout">Logout</a>
+}
+
+<div style="max-width:1100px; margin:0 auto; padding:2rem;">
+
+  @* VULNERABILITY #2: Internal IPs rendered into HTML *@
+  <div class="alert alert-warning" style="margin-bottom:2rem;">
+    ⚠ Admin Panel — Connected to @Model.InternalIp | DB: @Model.DbHost
+  </div>
+
+  <div class="grid-3" style="margin-bottom:2rem;">
+    <div class="stat-box">
+      <div class="stat-value">@Model.Users.Count</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">@Model.PiiRecords.Count</div>
+      <div class="stat-label">PII Records</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" style="color:var(--accent2);">LIVE</div>
+      <div class="stat-label">System Status</div>
+    </div>
+  </div>
+
+  @* USER TABLE — passwords shown in plaintext (VULNERABILITY #1) *@
+  <div class="card card-wide" style="margin-bottom:2rem;">
+    <p class="section-title">// all users</p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Password</th>
+          <th>Email</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var user in Model.Users)
+        {
+          <tr>
+            <td>@user.Id</td>
+            <td>@user.Username</td>
+            @* VULNERABILITY #1 + #10: Plaintext passwords displayed *@
+            <td style="color:var(--accent2);">@user.Password</td>
+            <td>@user.Email</td>
+            <td>
+              <span class="badge @(user.Role == "admin" ? "badge-admin" : "badge-user")">
+                @user.Role
+              </span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @* PII TABLE *@
+  <div class="card card-wide">
+    <p class="section-title">// pii records</p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User ID</th>
+          <th>Name</th>
+          <th>SSN</th>
+          <th>CC Number</th>
+          <th>CVV</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (Model.PiiRecords.Any())
+        {
+          foreach (var rec in Model.PiiRecords)
+          {
+            <tr>
+              <td>@rec.Id</td>
+              <td>@rec.UserId</td>
+              <td>@rec.FullName</td>
+              <td style="color:var(--accent2);">@rec.Ssn</td>
+              <td style="color:var(--accent2);">@rec.CcNumber</td>
+              <td>@rec.CcCvv</td>
+            </tr>
+          }
+        }
+        else
+        {
+          <tr>
+            <td colspan="6" style="text-align:center; color:var(--text-muted);">No PII records yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+@* VULNERABILITY #2 + #11: Internal details in footer *@
+@* VulnApp Admin Panel v1.0.2 | Server: @Model.InternalIp | DB: @Model.DbHost:5432 *@

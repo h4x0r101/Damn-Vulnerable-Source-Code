@@ -1,0 +1,160 @@
+@model VulnApp.Models.HomepageViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@* VulnApp v1.0.2 | homepage.html — User Dashboard *@
+@* Internal API Endpoint: http://192.168.1.105:5000/api/pii *@
+@* VULNERABILITY #2: Internal IP in Razor comment (visible in source) *@
+
+@section NavLinks {
+  @* VULNERABILITY #10: Admin path and credentials in HTML comment *@
+  @* Admin panel: /sl.html | Admin creds: admin / SuperSecret@123 *@
+  <span style="color:var(--text-muted); font-size:0.8rem;">
+    Logged in as <strong style="color:var(--accent);">@Model.Username</strong>
+  </span>
+  <a href="/logout">Logout</a>
+}
+
+<div style="max-width:960px; margin:0 auto; padding:2rem;">
+
+  @* VULNERABILITY #3: PII data reflected from URL query string *@
+  @if (Model.Status == "saved")
+  {
+    <div class="alert alert-success">
+      ✓ PII record saved for: @Model.UrlName
+      (CC: @Model.UrlCc, SSN: @Model.UrlSsn)
+    </div>
+  }
+
+  @* VULNERABILITY #5: Reflected XSS — Html.Raw() renders unsanitised search param *@
+  @* Payload: ?search=<script>alert('XSS')</script> *@
+  @if (!string.IsNullOrEmpty(Model.Search))
+  {
+    <div class="search-result-banner">
+      🔍 Showing results for: <strong>@Html.Raw(Model.Search)</strong>
+      @* NOTE: Html.Raw() intentionally bypasses Razor's automatic HTML encoding *@
+    </div>
+  }
+
+  @if (!string.IsNullOrEmpty(Model.Success))
+  {
+    <div class="alert alert-success">@Model.Success</div>
+  }
+
+  @* VULNERABILITY #8: IDOR — view_user param used without authorisation check *@
+  @if (Model.ViewUserId.HasValue)
+  {
+    <div class="alert alert-warning">
+      ⚠ Viewing PII for User ID: @Model.ViewUserId
+    </div>
+  }
+
+  <div class="grid-2" style="margin-bottom:2rem;">
+
+    @* ---- PII DATA FORM ---- *@
+    <div class="card" style="max-width:none;">
+      <h2>Personal Information</h2>
+      <p class="subtitle">// submit your pii data</p>
+
+      @* VULNERABILITY #3: form POSTs, but server redirects all PII back as GET params *@
+      @* CC number, SSN, CVV all end up in the URL and browser history *@
+      <form method="post" action="/homepage.html">
+        <input type="hidden" name="action" value="submit_pii" />
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" name="full_name" class="form-control" placeholder="John Doe" />
+        </div>
+        <div class="grid-2" style="gap:0.8rem;">
+          <div class="form-group">
+            <label>Date of Birth</label>
+            <input type="date" name="dob" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>SSN</label>
+            <input type="text" name="ssn" class="form-control" placeholder="XXX-XX-XXXX" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Credit Card Number</label>
+          <input type="text" name="cc_number" class="form-control" placeholder="4xxx xxxx xxxx xxxx" />
+        </div>
+        <div class="grid-2" style="gap:0.8rem;">
+          <div class="form-group">
+            <label>CVV</label>
+            <input type="text" name="cc_cvv" class="form-control" placeholder="XXX" maxlength="4" />
+          </div>
+          <div class="form-group">
+            <label>Expiry</label>
+            <input type="text" name="cc_expiry" class="form-control" placeholder="MM/YY" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <textarea name="address" class="form-control" placeholder="Your full address"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit PII Data</button>
+      </form>
+    </div>
+
+    @* ---- SEARCH + MESSAGE BOARD ---- *@
+    <div>
+      @* IDOR search box *@
+      <div class="card" style="max-width:none; margin-bottom:1.5rem;">
+        <p class="section-title">// search records</p>
+        @* VULNERABILITY #5: search param will be reflected via Html.Raw() *@
+        @* VULNERABILITY #8: view_user param enables IDOR *@
+        <form method="get" action="/homepage.html">
+          <div class="form-group">
+            <label>Search Messages</label>
+            <input type="text" name="search" class="form-control" placeholder="Search..." />
+          </div>
+          <div class="form-group">
+            <label>View User ID (PII)</label>
+            <input type="text" name="view_user" class="form-control"
+                   value="@Context.Session.GetInt32("UserId")"
+                   placeholder="Enter any user ID" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm" style="width:100%">Search</button>
+        </form>
+      </div>
+
+      @* MESSAGE BOARD — Stored XSS *@
+      <div class="card" style="max-width:none;">
+        <p class="section-title">// community board</p>
+        <form method="post" action="/homepage.html" style="margin-bottom:1rem;">
+          <input type="hidden" name="action" value="post_message" />
+          <div class="form-group">
+            <label>Post a Message</label>
+            <textarea name="message" class="form-control"
+                      placeholder="Write anything... <script>alert(1)</script>"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm" style="width:100%">Post</button>
+        </form>
+        <hr class="divider" />
+        <div class="message-feed">
+          @if (Model.Messages.Any())
+          {
+            foreach (var msg in Model.Messages)
+            {
+              <div class="message-item">
+                @* VULNERABILITY #6: Stored XSS — Html.Raw() renders DB content unescaped *@
+                @* Payload stored in DB is executed on every page load *@
+                <div>@Html.Raw(msg.Message)</div>
+                <div class="message-meta">user_id: @msg.UserId · @msg.CreatedAt</div>
+              </div>
+            }
+          }
+          else
+          {
+            <p style="color:var(--text-muted); font-size:0.82rem;">No messages yet.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+@* VULNERABILITY #2 + #11: Internal IP and version in footer comment *@
+@* VulnApp v1.0.2 | Server: @Model.InternalIp | ASP.NET Core 8.0 *@

@@ -1,0 +1,57 @@
+@model VulnApp.Models.SignupViewModel
+@{
+    ViewData["Title"] = "Sign Up";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@* VulnApp v1.0.2 | signup.html — User Registration *@
+@* VULNERABILITY #10: Role field info in comment — 'user' | 'admin' *@
+@* Default role assigned: 'user' — role param not validated server-side *@
+@* VULNERABILITY #10: Backdoor credentials in comment *@
+@* Backdoor account: backdoor_admin / b@ckd00r!2024 *@
+
+@section NavLinks {
+  <a href="/">Sign In</a>
+}
+
+<div class="page-container">
+  <div class="card">
+    <h2>Create Account</h2>
+    <p class="subtitle">// register a new user</p>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+      <div class="alert alert-error">@Model.ErrorMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+      <div class="alert alert-success">@Model.SuccessMessage</div>
+    }
+
+    <form method="post" action="/signup.html">
+      <div class="form-group">
+        <label for="Username">Username</label>
+        <input type="text" id="Username" name="Username" class="form-control"
+               placeholder="Choose a username" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="Email">Email Address</label>
+        <input type="email" id="Email" name="Email" class="form-control"
+               placeholder="your@email.com" />
+      </div>
+      <div class="form-group">
+        <label for="Password">Password</label>
+        <input type="password" id="Password" name="Password" class="form-control"
+               placeholder="Choose a password" />
+      </div>
+      @* VULNERABILITY: Hidden role field can be tampered with via browser DevTools *@
+      <input type="hidden" name="role" value="user" />
+      <button type="submit" class="btn btn-primary">Create Account</button>
+    </form>
+
+    <hr class="divider" />
+    <p style="font-size:0.82rem; color:var(--text-muted); text-align:center;">
+      Already registered?
+      <a href="/" style="color:var(--accent);">Sign in</a>
+    </p>
+  </div>
+</div>

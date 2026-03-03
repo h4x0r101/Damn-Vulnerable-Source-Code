@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!-- VulnApp v1.0.2 | ASP.NET Core 8.0 | C# -->
+<!-- Internal Server: 192.168.1.105 | DB: 10.0.0.22:5432 -->
+<!-- VULNERABILITY #11: Version and internal info in HTML comment -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- VULNERABILITY #11: Version in meta generator tag -->
+  <meta name="generator" content="VulnApp v1.0.2 ASP.NET Core/8.0 C#">
+  <title>@ViewData["Title"] — VulnApp</title>
+  <link rel="stylesheet" href="~/css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/">VULN<span>APP</span></a>
+  <div class="nav-links">
+    @RenderSection("NavLinks", required: false)
+  </div>
+</nav>
+
+@RenderBody()
+
+<footer>
+  @* VULNERABILITY #11: Version and internal IP disclosed in footer comment *@
+  @* VulnApp v1.0.2 | ASP.NET Core 8.0 | Server: 192.168.1.105 | DB: 10.0.0.22 *@
+  VulnApp &copy; 2024 | For educational use only
+</footer>
+
+</body>
+</html>
